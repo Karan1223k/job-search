@@ -1,0 +1,2 @@
+requests>=2.31
+fastembed>=0.7

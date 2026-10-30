@@ -1,0 +1,31 @@
+Karan Naveen Sood
+B.Tech Computer Science and Engineering, JIIT Noida (2022-2026), CGPA 7.88
+
+AWS DevOps Support Engineer, Capco Technologies (Client: Jefferies), Bengaluru (Sep 2026 - Present)
+Daily health checks and batch/process monitoring on Murex MX.3 production environments for capital-markets applications.
+Support configuration changes and deployments across SIT, UAT and Production under change controls.
+
+Data Engineering Intern, STMicroelectronics, Greater Noida (Jul 2025 - Jun 2026)
+Monitored and root-caused production B2B EDI transaction issues across 600+ partners and 30+ message types (800,000+ transactions/month), with failure trends tracked in Power BI.
+Automated Azure Blob archival via GitHub Actions with year/month partitioning.
+
+Summer Trainee, Centre of Excellence on AI for Education, JIIT (Jun 2025 - Jul 2025)
+Offline end-to-end pipeline localizing English videos into Hindi using Whisper.cpp transcription, IndicTrans2 translation and Coqui XTTS-v2 speech synthesis.
+Real-time English/Hindi audio and subtitle switching with FFmpeg and SRT alignment.
+
+AI/ML Engineering Intern, Forbes Marshall, Pune (Jun 2024 - Jul 2024)
+Built a custom LLM-based solution for business stakeholders from requirements and architecture to deployment.
+Engineered a RAG pipeline, tuning retrieval and model workflows to improve accuracy and domain relevance.
+
+Projects
+Retail Demand Forecasting and Multi-Agent GenAI Analyst: Python, PySpark, MySQL, Prophet, LangGraph, Gemini API, ChromaDB, sentence-transformers, Streamlit.
+Audited 1M+ MySQL sales records; compared ARIMA, SARIMA, SARIMAX and Prophet with walk-forward validation (MAPE 0.078).
+6-agent LangGraph system with planner routing to live SQL, RAG (ChromaDB) and Prophet forecasting, plus a critic agent that verifies answers; LLM evaluation harness.
+AgentBlame: robustness of LLM failure attribution in multi-agent systems using Ollama, Qwen2.5-7B and nomic-embed-text; counterfactual causal attribution, log perturbations, accuracy and Hit@k evaluation.
+
+Skills
+GenAI and LLM: LangGraph, multi-agent systems, RAG, ChromaDB, LLM APIs (Gemini), prompt engineering, tool/function calling, LLM evaluation, Hugging Face.
+ML and Data Science: machine learning, scikit-learn, time-series forecasting, feature engineering, EDA, statistics and probability, Power BI.
+Languages and Data: Python, SQL, C/C++, PySpark, Pandas, NumPy, Matplotlib, MySQL, ETL pipelines.
+CS Fundamentals: data structures and algorithms, OOP, DBMS, operating systems, REST APIs, distributed systems.
+Cloud and Tools: AWS, Azure, Docker, Linux, Git, GitHub Actions (CI/CD), Streamlit.
