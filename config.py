@@ -7,7 +7,7 @@ EMAIL_TO = os.environ.get("EMAIL_TO", "karannaveensood@gmail.com")
 
 MAX_AGE_DAYS = 2          # only jobs posted within this many days
 MAX_MIN_EXPERIENCE_YEARS = 1  # reject jobs whose minimum experience is above this ("2-5 yrs" and "2+ yrs" fail; "0-2", "1-3" pass)
-TOP_N_EMAIL = 7
+TOP_N_EMAIL = 10
 
 # A location must match this to count as India.
 INDIA_RE = re.compile(
@@ -57,15 +57,33 @@ ENTRY_LEVEL_RE = re.compile(
     re.I,
 )
 
-# Resume skills used for keyword scoring; weight reflects how central each is to the profile.
-SKILLS = {
-    "llm": 3, "large language model": 3, "generative ai": 3, "genai": 3, "gen ai": 3, "rag": 3,
-    "retrieval": 2, "langgraph": 3, "langchain": 3, "agent": 2, "multi-agent": 3, "prompt": 2,
-    "vector database": 2, "embedding": 2, "hugging face": 2, "transformer": 2, "nlp": 2,
-    "machine learning": 3, "deep learning": 2, "scikit-learn": 2, "pytorch": 1, "tensorflow": 1,
-    "time series": 2, "forecasting": 2, "statistics": 1, "feature engineering": 2, "model evaluation": 2,
-    "python": 3, "sql": 2, "pyspark": 2, "spark": 2, "pandas": 2, "numpy": 1, "etl": 2,
-    "data pipeline": 2, "data engineering": 2, "power bi": 1, "mysql": 1,
-    "aws": 2, "azure": 2, "docker": 2, "kubernetes": 1, "linux": 1, "ci/cd": 2, "github actions": 2,
-    "rest api": 1, "distributed systems": 1, "streamlit": 1, "monitoring": 1, "production support": 1,
+# Each resume is scored separately against every job; a job's rank uses whichever resume fits it
+# better. Skill weights reflect how central each skill is to that resume.
+RESUMES = {
+    "AI": {
+        "file": "resume_ai.txt",
+        "skills": {
+            "llm": 3, "large language model": 3, "generative ai": 3, "genai": 3, "gen ai": 3, "rag": 3,
+            "retrieval": 2, "langgraph": 3, "langchain": 3, "agent": 2, "agentic": 3, "multi-agent": 3,
+            "prompt": 2, "vector database": 2, "embedding": 2, "hugging face": 2, "transformer": 2, "nlp": 2,
+            "machine learning": 3, "deep learning": 2, "scikit-learn": 2, "pytorch": 1, "tensorflow": 1,
+            "model evaluation": 2, "evaluation": 1, "fine-tuning": 1, "function calling": 2, "tool calling": 2,
+            "time series": 1, "forecasting": 1, "feature engineering": 2,
+            "python": 3, "sql": 2, "pyspark": 1, "pandas": 1, "rest api": 1, "distributed systems": 1,
+            "aws": 2, "azure": 1, "docker": 2, "linux": 1, "ci/cd": 1, "streamlit": 1,
+        },
+    },
+    "Data Science": {
+        "file": "resume_ds.txt",
+        "skills": {
+            "data science": 3, "statistics": 3, "statistical": 3, "hypothesis testing": 2, "a/b test": 2,
+            "time series": 3, "forecasting": 3, "arima": 2, "prophet": 2, "machine learning": 2,
+            "feature engineering": 2, "regression": 2, "eda": 2, "exploratory data analysis": 2,
+            "python": 3, "sql": 3, "mysql": 1, "pyspark": 2, "spark": 2, "kafka": 2, "pandas": 2, "numpy": 1,
+            "etl": 2, "data pipeline": 2, "data engineering": 2, "data modeling": 3, "data modelling": 3,
+            "star schema": 2, "schema design": 2, "data warehouse": 2, "data quality": 2, "reconciliation": 1,
+            "parquet": 1, "avro": 1, "power bi": 2, "dax": 2, "tableau": 2, "dashboard": 1, "visualization": 1,
+            "matplotlib": 1, "azure": 1, "git": 1, "rag": 1, "langgraph": 1,
+        },
+    },
 }

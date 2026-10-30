@@ -94,19 +94,20 @@ def main():
 
     matches = filter_jobs(jobs)
     if matches:
-        matching.Ranker((ROOT / "resume.txt").read_text()).score(matches)
+        matching.Ranker(ROOT).score(matches)
     matches.sort(key=lambda j: j.score, reverse=True)
 
     sent = load_sent()
     top, seen_titles = [], set()
-    for j in matches:  # same title posted twice by one company (e.g. per city) counts once
-        key = (j.company, j.title.strip().lower())
-        if j.url not in sent and key not in seen_titles and len(top) < config.TOP_N_EMAIL:
+    for j in matches:  # the same job posted twice by one company (e.g. once per city) counts once
+        key = (j.company, j.title.strip().lower(), " ".join(j.description.split())[:400])
+        if key not in seen_titles and len(top) < config.TOP_N_EMAIL:
             seen_titles.add(key)
+            j.sent_before = j.url in sent  # still emailed, but tagged in the email
             top.append(j)
 
     for j in matches[:25]:
-        print(f"{j.score:.3f}  {'*' if j in top else ' '} {j.company:22.22}  {j.title[:60]:60}  exp={j.required_years}  {j.location[:40]}")
+        print(f"{j.score:.3f}  {'*' if j in top else ' '} {j.best_resume:12.12}  {j.company:20.20}  {j.title[:55]:55}  exp={j.required_years}")
 
     if args.dry_run:
         return
@@ -117,7 +118,8 @@ def main():
     log.info("emailed %d jobs to %s", len(top), config.EMAIL_TO)
 
     today = date.today().isoformat()
-    sent.update({j.url: today for j in top})
+    for j in top:
+        sent.setdefault(j.url, today)  # keep the date it was first emailed
     SENT_FILE.write_text(json.dumps(sent, indent=1, sort_keys=True))
 
 

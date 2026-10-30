@@ -71,37 +71,50 @@ def experience_ok(job) -> bool:
 
 # --- ranking ----------------------------------------------------------------------
 
-_SKILL_RES = {s: re.compile(r"(?<![a-z])" + re.escape(s) + r"(?![a-z])", re.I) for s in config.SKILLS}
-_MAX_SKILL = sum(config.SKILLS.values())
+def _skill_matchers(skills: dict) -> dict:
+    return {s: (re.compile(r"(?<![a-z])" + re.escape(s) + r"(?![a-z])", re.I), w) for s, w in skills.items()}
 
 
-def keyword_score(text: str) -> float:
-    hit = sum(w for s, w in config.SKILLS.items() if _SKILL_RES[s].search(text))
-    return min(1.0, hit / (_MAX_SKILL * 0.35))  # ~35% of the resume's skills present counts as a full match
+def keyword_score(text: str, matchers: dict) -> float:
+    hit = sum(w for rx, w in matchers.values() if rx.search(text))
+    total = sum(w for _, w in matchers.values())
+    return min(1.0, hit / (total * 0.35))  # ~35% of the resume's skills present counts as a full match
 
 
 class Ranker:
-    def __init__(self, resume_text: str):
+    """Scores each job against every resume in config.RESUMES and keeps the best fit."""
+
+    def __init__(self, root):
         from fastembed import TextEmbedding
         self.model = TextEmbedding("BAAI/bge-small-en-v1.5")
-        self.resume_vec = next(iter(self.model.embed([resume_text])))
+        self.resumes = []
+        for label, r in config.RESUMES.items():
+            vec = next(iter(self.model.embed([(root / r["file"]).read_text()])))
+            self.resumes.append((label, vec, _skill_matchers(r["skills"])))
 
     def score(self, jobs) -> None:
         if not jobs:
             return
         texts = [f"{j.title}\n{j.description[:3000]}" for j in jobs]
         for job, vec in zip(jobs, self.model.embed(texts)):
-            sim = float(vec @ self.resume_vec)  # vectors are normalised, so dot = cosine
-            kw = keyword_score(f"{job.title}\n{job.description}")
+            full = f"{job.title}\n{job.description}"
             # Entry-level wording in the title is a strong signal; in the description, a weaker one.
             entry = 0.12 if config.ENTRY_LEVEL_RE.search(job.title) else 0.04 if config.ENTRY_LEVEL_RE.search(job.description[:1500]) else 0.0
             stated = 0.05 if getattr(job, "required_years", None) is not None else 0.0  # explicitly asks for 0-1 yrs minimum
-            job.score = round(0.5 * sim + 0.35 * kw + 0.15 * title_fit(job.title) + entry + stated, 4)
+            shared = 0.15 * title_fit(job.title) + entry + stated
+            per_resume = {
+                label: round(0.5 * float(vec @ rvec) + 0.35 * keyword_score(full, matchers) + shared, 4)
+                for label, rvec, matchers in self.resumes  # vectors are normalised, so dot = cosine
+            }
+            job.best_resume = max(per_resume, key=per_resume.get)
+            job.score = per_resume[job.best_resume]
+            job.resume_scores = per_resume
 
 
-CORE_TITLE_RE = re.compile(r"machine learning|\bml\b|\bai\b|gen ?ai|\bllm|nlp|data scien|applied scien|data engineer|mlops|research engineer", re.I)
+CORE_TITLE_RE = re.compile(r"machine learning|\bml\b|\bai\b|gen ?ai|\bllm|nlp|data scien|applied scien|data engineer|data analyst|"
+                           r"analytics engineer|mlops|research engineer", re.I)
 
 
 def title_fit(title: str) -> float:
-    """1.0 for the resume's core roles (AI/ML/data), 0.5 for adjacent software/devops roles."""
+    """1.0 for the resumes' core roles (AI/ML/data), 0.5 for general software roles."""
     return 1.0 if CORE_TITLE_RE.search(title) else 0.5

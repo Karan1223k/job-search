@@ -1,0 +1,28 @@
+Karan Naveen Sood
+B.Tech Computer Science and Engineering, JIIT Noida (2022-2026), CGPA 7.88
+
+Technical Skills
+Data Engineering and Big Data: Python, SQL, MySQL, PySpark (Spark), Kafka, ETL / data pipelines, JSON, Avro, Parquet, C/C++.
+Data Modeling and Quality: temporal data modeling, schema design and evolution, star schema, normalized/denormalized modeling, natural vs surrogate keys, partitioning strategy, data quality and reconciliation, root-cause analysis.
+Statistical Analysis and GenAI: statistical modeling, time series forecasting (ARIMA/SARIMA, Prophet), hypothesis testing (t-test, ADF), LangGraph, RAG, ChromaDB.
+Cloud, Tools and Visualization: Power BI (DAX, Power Query), Tableau, Pandas, NumPy, Matplotlib, Azure Blob Storage, Git, GitHub Actions (CI/CD).
+
+AWS DevOps Support Engineer, Capco Technologies (Client: Jefferies), Bengaluru (Sep 2026 - Present)
+Daily health checks and batch/process monitoring on Murex MX.3 production environments for capital-markets applications.
+Support configuration changes and deployments across SIT, UAT and Production under change controls.
+
+Data Engineering Intern, STMicroelectronics, Greater Noida (Jul 2025 - Jun 2026)
+Monitored and root-caused production B2B EDI transaction issues across 600+ partners and 30+ message types (800,000+ transactions/month), with failure trends tracked in Power BI.
+Automated Azure Blob archival via GitHub Actions with year/month partitioning.
+
+Summer Trainee, Centre of Excellence on AI for Education, JIIT (Jun 2025 - Jul 2025)
+Offline end-to-end pipeline localizing English videos into Hindi using Whisper.cpp, IndicTrans2 and Coqui XTTS-v2; FFmpeg audio and subtitle switching.
+
+AI/ML Engineering Intern, Forbes Marshall, Pune (Jun 2024 - Jul 2024)
+Built a custom LLM-based solution for business stakeholders; engineered a RAG pipeline tuning retrieval and model workflows.
+
+Projects
+Retail Demand Forecasting and Multi-Agent Analyst System: Python, SQL, PySpark, LangGraph, Prophet/ARIMA/SARIMAX, ChromaDB.
+Modeled 1M+ raw MySQL records into a curated, model-ready SQL view; audited historical state to exclude 180 stores with a systematic gap; reconciled every aggregation across SQL, pandas and PySpark (JDBC) to confirm zero data corruption.
+Root-caused feature leakage and an unfair evaluation window; fixed via walk-forward validation (best: Prophet, MAPE 0.078); 5-agent LangGraph pipeline with live SQL, RAG, forecasting and critic, verified by a 16-question eval harness.
+Netflix Analytics Dashboard: SQL, Power BI, DAX, Power Query. Star-schema warehouse from raw CSV with fact and dimension tables, multi-valued field resolution and surrogate keys; custom DAX date dimension and measures (DISTINCTCOUNT, CALCULATE, RANKX, SAMEPERIODLASTYEAR) powering dashboards and trend analysis.

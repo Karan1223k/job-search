@@ -9,9 +9,11 @@ Runs every day at 9:00 AM IST on GitHub Actions:
    minimum experience requirement of 0 or 1 year (ranges count by their lower bound, so "1-3 years"
    passes and "2-5 years" / "2+ years" are rejected; jobs that state no years are kept unless the
    description reads as senior).
-3. Ranks them against `resume.txt` (embedding similarity + weighted skill keywords).
+3. Scores each job against both resumes (`resume_ai.txt`, `resume_ds.txt`; embedding similarity +
+   that resume's weighted skill keywords) and ranks by the better fit.
 4. Adds the name of each company with a matching job to the Google Sheet, if it isn't listed yet.
-5. Emails the top 7 not-yet-emailed jobs to `EMAIL_TO`.
+5. Emails the top 10 jobs, each labelled with the better-fitting resume; jobs emailed on an earlier
+   day are tagged "(sent before)". Sent to `EMAIL_TO`.
 
 Settings live in `config.py`; companies in `companies.json`.
 
