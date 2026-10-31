@@ -48,7 +48,9 @@ For a full local run, put `GMAIL_ADDRESS`, `GMAIL_APP_PASSWORD`, `SHEET_WEBAPP_U
 `SHEET_TOKEN` in a `.env` file (git-ignored).
 
 ## Notes
-- GitHub's scheduler can start runs 5–30 minutes late at busy times.
+- GitHub's scheduler is best-effort: runs can start late or be skipped at busy times. The
+  workflow therefore has backup slots (09:22, 10:07, 11:43 IST); `last_run.txt` records the
+  day's run so only the first successful one sends the email. Manual runs always run.
 - Scheduled workflows are paused by GitHub after 60 days without repo activity; the daily
-  commit of `sent_jobs.json` keeps the repo active.
+  commit of `last_run.txt` keeps the repo active.
 - To add a company, add an entry to `companies.json` following the existing ones.

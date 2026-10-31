@@ -2,11 +2,20 @@ name: Daily job search
 
 on:
   schedule:
-    - cron: "30 3 * * *"   # 09:00 IST (03:30 UTC) every day
-  workflow_dispatch:         # allows a manual "Run workflow" button
+    # GitHub may delay or drop scheduled runs under load, so later backup slots retry; the guard
+    # step below makes sure only the first successful run of the day sends the email.
+    - cron: "30 3 * * *"   # 09:00 IST (03:30 UTC)
+    - cron: "52 3 * * *"   # 09:22 IST backup
+    - cron: "37 4 * * *"   # 10:07 IST backup
+    - cron: "13 6 * * *"   # 11:43 IST backup
+  workflow_dispatch:         # allows a manual "Run workflow" button (always runs)
 
 permissions:
-  contents: write            # to commit sent_jobs.json back
+  contents: write            # to commit sent_jobs.json / last_run.txt back
+
+concurrency:
+  group: daily-job-search
+  cancel-in-progress: false
 
 jobs:
   run:
@@ -15,14 +24,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Skip if today's email already went out
+        id: guard
+        run: |
+          today=$(TZ=Asia/Kolkata date +%F)
+          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(cat last_run.txt 2>/dev/null)" = "$today" ]; then
+            echo "Already ran today ($today); skipping."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - uses: actions/setup-python@v5
+        if: steps.guard.outputs.skip != 'true'
         with:
           python-version: "3.12"
           cache: pip
 
-      - run: pip install -r requirements.txt
+      - if: steps.guard.outputs.skip != 'true'
+        run: pip install -r requirements.txt
 
       - name: Search, update sheet, send email
+        if: steps.guard.outputs.skip != 'true'
         env:
           SHEET_WEBAPP_URL: ${{ secrets.SHEET_WEBAPP_URL }}
           SHEET_TOKEN: ${{ secrets.SHEET_TOKEN }}
@@ -30,10 +53,13 @@ jobs:
           GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
         run: python main.py
 
-      - name: Save list of already-emailed jobs
+      - name: Save emailed jobs and today's run date
+        if: steps.guard.outputs.skip != 'true'
         run: |
+          TZ=Asia/Kolkata date +%F > last_run.txt
           git config user.name "job-search-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add sent_jobs.json
-          git diff --cached --quiet || git commit -m "Update sent jobs $(date -u +%F)"
+          git add sent_jobs.json last_run.txt
+          git diff --cached --quiet || git commit -m "Daily run $(TZ=Asia/Kolkata date +%F)"
+          git pull --rebase --quiet
           git push
