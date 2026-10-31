@@ -95,6 +95,10 @@ def main():
     matches = filter_jobs(jobs)
     if matches:
         matching.Ranker(ROOT).score(matches)
+    now = datetime.now(timezone.utc)
+    for j in matches:
+        j.age_days = max(0, (now - j.posted).days) if j.posted else 0
+        j.score = round(j.score - config.AGE_PENALTY_PER_DAY * max(0, j.age_days - 1), 4)
     matches.sort(key=lambda j: j.score, reverse=True)
 
     sent = load_sent()
@@ -109,7 +113,7 @@ def main():
     top = ([j for j in unique if not j.sent_before] + [j for j in unique if j.sent_before])[: config.TOP_N_EMAIL]
 
     for j in matches[:25]:
-        print(f"{j.score:.3f}  {'*' if j in top else ' '} {j.best_resume:12.12}  {j.company:20.20}  {j.title[:55]:55}  exp={j.required_years}")
+        print(f"{j.score:.3f}  {'*' if j in top else ' '} {j.best_resume:12.12}  {j.company:20.20}  {j.title[:50]:50}  {j.age_days}d  exp={j.required_years}")
 
     if args.dry_run:
         return

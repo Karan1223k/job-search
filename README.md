@@ -2,7 +2,7 @@
 
 Runs every day at 9:00 AM IST on GitHub Actions:
 
-1. Fetches jobs posted in the last 2 days directly from ~230 companies' official careers portals
+1. Fetches jobs posted in the last 5 days directly from ~230 companies' official careers portals
    (`companies.json`: Greenhouse, Lever, Ashby, SmartRecruiters and Workday boards; no aggregators).
 2. Keeps jobs in India (or remote-open-to-India) with a non-senior data science / AI / ML /
    data engineering / software engineering title and a stated
@@ -10,9 +10,10 @@ Runs every day at 9:00 AM IST on GitHub Actions:
    passes and "2-5 years" / "2+ years" are rejected; jobs that state no years are kept unless the
    description reads as senior).
 3. Scores each job against both resumes (`resume_ai.txt`, `resume_ds.txt`; embedding similarity +
-   that resume's weighted skill keywords) and ranks by the better fit.
+   that resume's weighted skill keywords) and ranks by the better fit, minus 0.04 per day of age
+   after the first, so fresher jobs rank higher unless an older one is a much better fit.
 4. Adds the name of each company with a matching job to the Google Sheet, if it isn't listed yet.
-5. Emails 10 jobs, each labelled with the better-fitting resume. Jobs not emailed before come first,
+5. Emails 7 jobs, each labelled with the better-fitting resume. Jobs not emailed before come first,
    even if they rank lower; previously sent ones (tagged "(sent before)") only fill leftover slots.
 
 Settings live in `config.py`; companies in `companies.json`.

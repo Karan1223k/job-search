@@ -25,6 +25,10 @@ def update_sheet(jobs) -> int:
     return result["added"]
 
 
+def _age(days: int) -> str:
+    return "today" if days == 0 else "yesterday" if days == 1 else f"{days} days ago"
+
+
 def send_email(top_jobs, total_matches: int) -> None:
     sender = os.environ["GMAIL_ADDRESS"]
     password = os.environ["GMAIL_APP_PASSWORD"]
@@ -37,13 +41,14 @@ def send_email(top_jobs, total_matches: int) -> None:
             f"<td style='padding:6px 10px'><a href='{html.escape(j.url)}'>{html.escape(j.title)}</a>"
             f"{' <i style=\'color:#888\'>(sent before)</i>' if j.sent_before else ''}</td>"
             f"<td style='padding:6px 10px'>{html.escape(j.best_resume)}</td>"
-            f"<td style='padding:6px 10px'>{html.escape(j.location[:60])}</td></tr>"
+            f"<td style='padding:6px 10px'>{html.escape(j.location[:60])}</td>"
+            f"<td style='padding:6px 10px'>{_age(j.age_days)}</td></tr>"
             for i, j in enumerate(top_jobs, 1)
         )
         body = (f"<p>Top {len(top_jobs)} of {total_matches} matching jobs from official career sites "
                 f"(posted in the last {config.MAX_AGE_DAYS} days, minimum experience 0-{config.MAX_MIN_EXPERIENCE_YEARS} yr):</p>"
                 f"<table border='1' style='border-collapse:collapse;font-family:sans-serif;font-size:14px'>"
-                f"<tr><th>#</th><th>Company</th><th>Job</th><th>Best resume</th><th>Location</th></tr>{rows}</table>")
+                f"<tr><th>#</th><th>Company</th><th>Job</th><th>Best resume</th><th>Location</th><th>Posted</th></tr>{rows}</table>")
     else:
         body = "<p>No new matching jobs were found today.</p>"
     body += f"<p><a href='{sheet_url}'>Open the company tracker sheet</a></p>"
@@ -53,7 +58,7 @@ def send_email(top_jobs, total_matches: int) -> None:
     msg["Subject"] = f"Daily job matches: top {len(top_jobs)} ({new} new)"
     msg["From"] = sender
     msg["To"] = config.EMAIL_TO
-    plain = "\n".join(f"{i}. {j.company} - {j.title} [{j.best_resume} resume]{' (sent before)' if j.sent_before else ''}\n   {j.url}" for i, j in enumerate(top_jobs, 1)) or "No new matching jobs today."
+    plain = "\n".join(f"{i}. {j.company} - {j.title} [{j.best_resume} resume, posted {_age(j.age_days)}]{' (sent before)' if j.sent_before else ''}\n   {j.url}" for i, j in enumerate(top_jobs, 1)) or "No new matching jobs today."
     msg.attach(MIMEText(plain, "plain"))
     msg.attach(MIMEText(body, "html"))
 
