@@ -98,13 +98,15 @@ def main():
     matches.sort(key=lambda j: j.score, reverse=True)
 
     sent = load_sent()
-    top, seen_titles = [], set()
+    unique, seen_titles = [], set()
     for j in matches:  # the same job posted twice by one company (e.g. once per city) counts once
         key = (j.company, j.title.strip().lower(), " ".join(j.description.split())[:400])
-        if key not in seen_titles and len(top) < config.TOP_N_EMAIL:
+        if key not in seen_titles:
             seen_titles.add(key)
-            j.sent_before = j.url in sent  # still emailed, but tagged in the email
-            top.append(j)
+            j.sent_before = j.url in sent
+            unique.append(j)
+    # New jobs come first, even if they match less well; already-emailed ones only fill leftover slots.
+    top = ([j for j in unique if not j.sent_before] + [j for j in unique if j.sent_before])[: config.TOP_N_EMAIL]
 
     for j in matches[:25]:
         print(f"{j.score:.3f}  {'*' if j in top else ' '} {j.best_resume:12.12}  {j.company:20.20}  {j.title[:55]:55}  exp={j.required_years}")

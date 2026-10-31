@@ -12,8 +12,8 @@ Runs every day at 9:00 AM IST on GitHub Actions:
 3. Scores each job against both resumes (`resume_ai.txt`, `resume_ds.txt`; embedding similarity +
    that resume's weighted skill keywords) and ranks by the better fit.
 4. Adds the name of each company with a matching job to the Google Sheet, if it isn't listed yet.
-5. Emails the top 10 jobs, each labelled with the better-fitting resume; jobs emailed on an earlier
-   day are tagged "(sent before)". Sent to `EMAIL_TO`.
+5. Emails 10 jobs, each labelled with the better-fitting resume. Jobs not emailed before come first,
+   even if they rank lower; previously sent ones (tagged "(sent before)") only fill leftover slots.
 
 Settings live in `config.py`; companies in `companies.json`.
 
