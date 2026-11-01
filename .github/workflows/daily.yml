@@ -8,7 +8,12 @@ on:
     - cron: "52 3 * * *"   # 09:22 IST backup
     - cron: "37 4 * * *"   # 10:07 IST backup
     - cron: "13 6 * * *"   # 11:43 IST backup
-  workflow_dispatch:         # allows a manual "Run workflow" button (always runs)
+  workflow_dispatch:         # manual "Run workflow" button, and the Apps Script morning timer
+    inputs:
+      force:
+        description: "Run even if today's email already went out"
+        type: boolean
+        default: true        # the button always runs; the Apps Script timer sends false
 
 permissions:
   contents: write            # to commit sent_jobs.json / last_run.txt back
@@ -28,7 +33,7 @@ jobs:
         id: guard
         run: |
           today=$(TZ=Asia/Kolkata date +%F)
-          if [ "${{ github.event_name }}" = "schedule" ] && [ "$(cat last_run.txt 2>/dev/null)" = "$today" ]; then
+          if [ "${{ inputs.force }}" != "true" ] && [ "$(cat last_run.txt 2>/dev/null)" = "$today" ]; then
             echo "Already ran today ($today); skipping."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           else

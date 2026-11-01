@@ -41,3 +41,31 @@ function doPost(e) {
 function reply(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
+
+// --- Daily timer: GitHub's own scheduler is unreliable, so Google starts the run instead. ---
+// One-time setup: Project Settings -> Script properties -> add GITHUB_TOKEN (a fine-grained token
+// with Actions: Read and write on the job-search repo), then run setupDailyTrigger once.
+const REPO = 'Karan1223k/job-search';
+
+function setupDailyTrigger() {
+  ScriptApp.getProjectTriggers()
+    .filter(t => t.getHandlerFunction() === 'triggerDailyRun')
+    .forEach(t => ScriptApp.deleteTrigger(t));
+  ScriptApp.newTrigger('triggerDailyRun').timeBased()
+    .everyDays(1).atHour(9).nearMinute(0).inTimezone('Asia/Kolkata').create();
+}
+
+function triggerDailyRun() {
+  const token = PropertiesService.getScriptProperties().getProperty('GITHUB_TOKEN');
+  const res = UrlFetchApp.fetch(
+    `https://api.github.com/repos/${REPO}/actions/workflows/daily.yml/dispatches`, {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' },
+      payload: JSON.stringify({ ref: 'main', inputs: { force: false } }),
+      muteHttpExceptions: true,
+    });
+  if (res.getResponseCode() !== 204) {
+    throw new Error(`GitHub dispatch failed: ${res.getResponseCode()} ${res.getContentText()}`);
+  }
+}
