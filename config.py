@@ -8,7 +8,7 @@ EMAIL_TO = os.environ.get("EMAIL_TO", "karannaveensood@gmail.com")
 MAX_AGE_DAYS = 5          # only jobs posted within this many days
 AGE_PENALTY_PER_DAY = 0.04  # score lost per day of age after the first, so fresher jobs rank higher
 MAX_MIN_EXPERIENCE_YEARS = 1  # reject jobs whose minimum experience is above this ("2-5 yrs" and "2+ yrs" fail; "0-2", "1-3" pass)
-TOP_N_EMAIL = 7
+TOP_N_EMAIL = 10
 
 # A location must match this to count as India.
 INDIA_RE = re.compile(
