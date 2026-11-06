@@ -7,9 +7,13 @@ objects posted within the age window. Descriptions are filled lazily by
 from __future__ import annotations
 
 import html
+import json
 import re
+import time
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
+from email.utils import parsedate_to_datetime
 
 import requests
 
@@ -191,10 +195,95 @@ def workday(c, cutoff, max_days):
     return jobs
 
 
+# --- SuccessFactors (RSS feed of the career site, newest first, max 20 items) ----
+
+def successfactors(c, cutoff):
+    r = session.get(f"https://{c['host']}/services/rss/job/", timeout=TIMEOUT,
+                    params={"locale": "en_US", "keywords": c.get("keywords", "")})
+    r.raise_for_status()
+    jobs = []
+    for item in ET.fromstring(r.content).iter("item"):
+        pub = item.findtext("pubDate")
+        if not pub:  # the "no jobs currently available" placeholder
+            continue
+        posted = parsedate_to_datetime(pub)
+        if posted < cutoff:
+            continue
+        # Titles look like "Senior Data Engineer (Bangalore, IN, 562122)"
+        title, _, loc = (item.findtext("title") or "").strip().rpartition(" (")
+        loc = loc.rstrip(")")
+        if "IN" in [p.strip() for p in loc.split(",")]:
+            loc += " | India"
+        url = (item.findtext("link") or "").split("?")[0]
+        jobs.append(Job(c["name"], c["careers_url"], title or loc, url, loc, posted,
+                        strip_html(item.findtext("description") or "")))
+    return jobs
+
+
+# --- Mercedes-Benz (its own job search API; country filters are ignored, so filter here) ---
+
+MB_FIELDS = ["ID", "PositionTitle", "PositionURI", "PositionLocation.CityName",
+             "PositionLocation.CountryCode", "PublicationStartDate"]
+
+
+def mercedes(c, cutoff):
+    jobs, first = [], 1
+    while first < 5000:
+        query = {"LanguageCode": "EN", "SearchCriteria": [],
+                 "SearchParameters": {"FirstItem": first, "CountItem": 100, "MatchedObjectDescriptor": MB_FIELDS,
+                                      "Sort": [{"Criterion": "PublicationStartDate", "Direction": "DESC"}]}}
+        items = _get("https://jobs.api.mercedes-benz.com/search", params={"data": json.dumps(query)})["SearchResult"]["SearchResultItems"]
+        too_old = False
+        for it in items:
+            j = it["MatchedObjectDescriptor"]
+            day = j.get("PublicationStartDate") or ((j.get("PublicationChannel") or [{}])[0].get("StartDate"))
+            posted = datetime.fromisoformat(day).replace(tzinfo=timezone.utc) if day else None
+            if posted and posted.date() < cutoff.date():
+                too_old = True
+                break
+            locs = j.get("PositionLocation") or []
+            if not any(l.get("CountryCode") == "IN" for l in locs):
+                continue
+            url = j["PositionURI"].replace("jobs.mercedes-benz.com/", "jobs.mercedes-benz.com/en/", 1)
+            loc = " | ".join(filter(None, [l.get("CityName") for l in locs] + ["India"]))
+            jobs.append(Job(c["name"], c["careers_url"], j["PositionTitle"], url, loc, posted,
+                            _detail={"kind": "page", "url": url}))
+        if too_old or len(items) < 100:
+            return jobs
+        first += 100
+    return jobs
+
+
+# --- PeopleStrong (the career site's own JSON API) -----------------------------
+
+def peoplestrong(c, cutoff):
+    base = f"https://{c['host']}/api/cp/rest/altone/cp"
+    jobs, offset = [], 0
+    while offset < 1000:
+        d = session.post(f"{base}/jobs/v1", params={"offset": offset, "limit": 45}, json={}, timeout=TIMEOUT)
+        d.raise_for_status()
+        d = d.json()
+        posts = d.get("response") or []
+        for j in posts:
+            posted = datetime.fromisoformat(j["jobPostedDate"]).replace(tzinfo=timezone.utc)
+            if posted.date() < cutoff.date():
+                continue
+            code = j["jobDetailUrl"].rstrip("/").rsplit("/", 1)[-1]
+            jobs.append(Job(c["name"], c["careers_url"], j["jobTitle"], j["jobDetailUrl"],
+                            (j.get("locationHierarchyComplete") or "").replace(">", " | "), posted,
+                            _detail={"kind": "peoplestrong", "exp": j.get("expRange") or "",
+                                     "url": f"{base}/job/{code}/v2?part=basic,descriprion,skill,qualification&isReqId=false"}))
+        offset += 45
+        if not posts or offset >= d.get("totalRecords", 0):
+            return jobs
+    return jobs
+
+
 def fetch_company(c, cutoff, max_days):
     if c["ats"] == "workday":
         return workday(c, cutoff, max_days)
-    return {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters}[c["ats"]](c, cutoff)
+    return {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters,
+            "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong}[c["ats"]](c, cutoff)
 
 
 def load_description(job: Job) -> None:
@@ -202,11 +291,23 @@ def load_description(job: Job) -> None:
     d = job._detail
     if job.description or not d:
         return
+    if d["kind"] == "page":  # plain HTML job page; Mercedes returns 500s under parallel load, so retry
+        for attempt in range(4):
+            r = session.get(d["url"], timeout=TIMEOUT)
+            if r.status_code < 500:
+                break
+            time.sleep(2 + 3 * attempt)
+        r.raise_for_status()
+        job.description = strip_html(re.sub(r"<(script|style)\b.*?</\1>", " ", r.text, flags=re.S | re.I))
+        return
     data = _get(d["url"])
     if d["kind"] == "greenhouse":
         job.description = strip_html(data.get("content", ""))
         offices = [o.get("location") or o.get("name") or "" for o in data.get("offices") or []]
         job.location = " | ".join(filter(None, [job.location] + offices))
+    elif d["kind"] == "peoplestrong":
+        desc = strip_html((data.get("response") or {}).get("jobDescription", ""))
+        job.description = (f"Required experience: {d['exp']}\n" if d["exp"] else "") + desc
     elif d["kind"] == "smartrecruiters":
         sections = (data.get("jobAd") or {}).get("sections") or {}
         job.description = "\n".join(strip_html(s.get("text", "")) for s in sections.values())

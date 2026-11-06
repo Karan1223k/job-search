@@ -1572,5 +1572,38 @@
   "tenant": "zoom",
   "site": "Zoom",
   "careers_url": "https://zoom.wd5.myworkdayjobs.com/Zoom"
+ },
+ {
+  "name": "Walmart Global Tech",
+  "ats": "workday",
+  "host": "walmart.wd504.myworkdayjobs.com",
+  "tenant": "walmart",
+  "site": "WalmartExternal",
+  "careers_url": "https://walmart.wd504.myworkdayjobs.com/WalmartExternal"
+ },
+ {
+  "name": "Volvo Group",
+  "ats": "successfactors",
+  "host": "jobs.volvogroup.com",
+  "keywords": "India",
+  "careers_url": "https://jobs.volvogroup.com"
+ },
+ {
+  "name": "Volvo Cars",
+  "ats": "successfactors",
+  "host": "jobs.volvocars.com",
+  "keywords": "",
+  "careers_url": "https://jobs.volvocars.com"
+ },
+ {
+  "name": "Mercedes-Benz (MBRDI)",
+  "ats": "mercedes",
+  "careers_url": "https://jobs.mercedes-benz.com/en"
+ },
+ {
+  "name": "BMW TechWorks India",
+  "ats": "peoplestrong",
+  "host": "careers-bmwtechworks.peoplestrong.com",
+  "careers_url": "https://careers-bmwtechworks.peoplestrong.com/job/joblist"
  }
 ]
