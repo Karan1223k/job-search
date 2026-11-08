@@ -1605,5 +1605,108 @@
   "ats": "peoplestrong",
   "host": "careers-bmwtechworks.peoplestrong.com",
   "careers_url": "https://careers-bmwtechworks.peoplestrong.com/job/joblist"
+ },
+ {
+  "name": "IBM",
+  "ats": "ibm",
+  "careers_url": "https://www.ibm.com/careers/search"
+ },
+ {
+  "name": "Swiggy",
+  "ats": "smartrecruiters",
+  "token": "Swiggy",
+  "careers_url": "https://careers.swiggy.in"
+ },
+ {
+  "name": "Ford",
+  "ats": "oracle",
+  "host": "efds.fa.em5.oraclecloud.com",
+  "site": "CX_1",
+  "careers_url": "https://efds.fa.em5.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1/jobs"
+ },
+ {
+  "name": "Qualcomm",
+  "ats": "eightfold",
+  "host": "careers.qualcomm.com",
+  "domain": "qualcomm.com",
+  "careers_url": "https://careers.qualcomm.com/careers"
+ },
+ {
+  "name": "AMD",
+  "ats": "amd",
+  "careers_url": "https://careers.amd.com/careers-home/jobs"
+ },
+ {
+  "name": "Mahindra",
+  "ats": "successfactors",
+  "host": "jobs.mahindracareers.com",
+  "keywords": "software|data|machine learning|analytics",
+  "careers_url": "https://jobs.mahindracareers.com"
+ },
+ {
+  "name": "Volkswagen Group",
+  "ats": "successfactors",
+  "host": "jobs.volkswagen-group.com",
+  "keywords": "India",
+  "careers_url": "https://jobs.volkswagen-group.com"
+ },
+ {
+  "name": "JPMorgan Chase",
+  "ats": "oracle",
+  "host": "jpmc.fa.oraclecloud.com",
+  "site": "CX_1001",
+  "careers_url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs"
+ },
+ {
+  "name": "Oracle",
+  "ats": "oracle",
+  "host": "eeho.fa.us2.oraclecloud.com",
+  "site": "CX_45001",
+  "careers_url": "https://eeho.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_45001/jobs"
+ },
+ {
+  "name": "Microsoft",
+  "ats": "eightfold",
+  "host": "apply.careers.microsoft.com",
+  "domain": "microsoft.com",
+  "careers_url": "https://apply.careers.microsoft.com/careers"
+ },
+ {
+  "name": "Thomson Reuters",
+  "ats": "workday",
+  "host": "thomsonreuters.wd5.myworkdayjobs.com",
+  "tenant": "thomsonreuters",
+  "site": "External_Career_Site",
+  "careers_url": "https://thomsonreuters.wd5.myworkdayjobs.com/External_Career_Site"
+ },
+ {
+  "name": "Fractal",
+  "ats": "workday",
+  "host": "fractal.wd1.myworkdayjobs.com",
+  "tenant": "fractal",
+  "site": "Careers",
+  "careers_url": "https://fractal.wd1.myworkdayjobs.com/Careers"
+ },
+ {
+  "name": "Palo Alto Networks",
+  "ats": "workday",
+  "host": "paloaltonetworks.wd5.myworkdayjobs.com",
+  "tenant": "paloaltonetworks",
+  "site": "panwexternalcareers",
+  "careers_url": "https://paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers"
+ },
+ {
+  "name": "Dell",
+  "ats": "oracle",
+  "host": "enterpriseplatform.dell.com",
+  "site": "careers",
+  "careers_url": "https://enterpriseplatform.dell.com/hcmUI/CandidateExperience/en/sites/careers"
+ },
+ {
+  "name": "Honeywell",
+  "ats": "oracle",
+  "host": "ibqbjb.fa.ocs.oraclecloud.com",
+  "site": "Honeywell",
+  "careers_url": "https://careers.honeywell.com/en/sites/Honeywell/jobs"
  }
 ]

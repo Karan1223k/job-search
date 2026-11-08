@@ -127,6 +127,7 @@ def main():
     for j in top:
         sent.setdefault(j.url, today)  # keep the date it was first emailed
     SENT_FILE.write_text(json.dumps(sent, indent=1, sort_keys=True))
+    sources.save_ibm_seen()
 
 
 if __name__ == "__main__":

@@ -14,6 +14,7 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 
 import requests
 
@@ -46,16 +47,24 @@ def strip_html(text: str) -> str:
     return re.sub(r"[ \t\xa0]+", " ", text).strip()
 
 
-def _get(url, **kw):
-    r = session.get(url, timeout=TIMEOUT, **kw)
+def _send(method, url, **kw):
+    """Make a request, waiting and retrying if the site says we're going too fast."""
+    for attempt in range(6):
+        r = session.request(method, url, timeout=TIMEOUT, **kw)
+        if r.status_code != 429 or attempt == 5:
+            break
+        wait = r.headers.get("Retry-After", "")
+        time.sleep(min(int(wait), 30) if wait.isdigit() else 3 + 4 * attempt)
     r.raise_for_status()
     return r.json()
+
+
+def _get(url, **kw):
+    return _send("GET", url, **kw)
 
 
 def _post(url, body):
-    r = session.post(url, json=body, timeout=TIMEOUT)
-    r.raise_for_status()
-    return r.json()
+    return _send("POST", url, json=body)
 
 
 def _iso(s: str | None) -> datetime | None:
@@ -176,7 +185,12 @@ def workday(c, cutoff, max_days):
 
     jobs, offset = [], 0
     while offset < 1000:
-        d = _post(f"{api}/jobs", {"limit": 20, "offset": offset, "searchText": search, "appliedFacets": applied})
+        try:
+            d = _post(f"{api}/jobs", {"limit": 20, "offset": offset, "searchText": search, "appliedFacets": applied})
+        except requests.RequestException:
+            if not offset:
+                raise
+            break  # keep the pages we already have
         posts = d.get("jobPostings") or []
         recent = 0
         for j in posts:
@@ -188,8 +202,9 @@ def workday(c, cutoff, max_days):
             jobs.append(Job(c["name"], c["careers_url"], j["title"], f"{c['careers_url']}{path}", j.get("locationsText", ""),
                             datetime.now(timezone.utc) - timedelta(days=days),
                             _detail={"kind": "workday", "url": f"{api}{path}"}))
-        # Results are newest-first; stop once a whole page is older than the window.
-        if not posts or recent == 0:
+        # Facet results are newest-first, so stop once a whole page is older than the window.
+        # Text-search results are ordered by relevance, so those have to be read to the end.
+        if not posts or (facet and recent == 0):
             break
         offset += 20
     return jobs
@@ -198,25 +213,28 @@ def workday(c, cutoff, max_days):
 # --- SuccessFactors (RSS feed of the career site, newest first, max 20 items) ----
 
 def successfactors(c, cutoff):
-    r = session.get(f"https://{c['host']}/services/rss/job/", timeout=TIMEOUT,
-                    params={"locale": "en_US", "keywords": c.get("keywords", "")})
-    r.raise_for_status()
-    jobs = []
-    for item in ET.fromstring(r.content).iter("item"):
-        pub = item.findtext("pubDate")
-        if not pub:  # the "no jobs currently available" placeholder
-            continue
-        posted = parsedate_to_datetime(pub)
-        if posted < cutoff:
-            continue
-        # Titles look like "Senior Data Engineer (Bangalore, IN, 562122)"
-        title, _, loc = (item.findtext("title") or "").strip().rpartition(" (")
-        loc = loc.rstrip(")")
-        if "IN" in [p.strip() for p in loc.split(",")]:
-            loc += " | India"
-        url = (item.findtext("link") or "").split("?")[0]
-        jobs.append(Job(c["name"], c["careers_url"], title or loc, url, loc, posted,
-                        strip_html(item.findtext("description") or "")))
+    jobs, seen = [], set()
+    # "keywords" can hold several searches split by "|", since each feed stops at 20 items
+    for keywords in c.get("keywords", "").split("|"):
+        r = session.get(f"https://{c['host']}/services/rss/job/", timeout=TIMEOUT,
+                        params={"locale": "en_US", "keywords": keywords})
+        r.raise_for_status()
+        for item in ET.fromstring(r.content).iter("item"):
+            pub = item.findtext("pubDate")
+            if not pub:  # the "no jobs currently available" placeholder
+                continue
+            posted = parsedate_to_datetime(pub)
+            url = (item.findtext("link") or "").split("?")[0]
+            if posted < cutoff or url in seen:
+                continue
+            seen.add(url)
+            # Titles look like "Senior Data Engineer (Bangalore, IN, 562122)"
+            title, _, loc = (item.findtext("title") or "").strip().rpartition(" (")
+            loc = loc.rstrip(")")
+            if "IN" in [p.strip() for p in loc.split(",")]:
+                loc += " | India"
+            jobs.append(Job(c["name"], c["careers_url"], title or loc, url, loc, posted,
+                            strip_html(item.findtext("description") or "")))
     return jobs
 
 
@@ -279,11 +297,127 @@ def peoplestrong(c, cutoff):
     return jobs
 
 
+# --- Oracle Cloud HCM (newest first; location ids differ per company, so filter India here) ---
+
+def oracle(c, cutoff):
+    host, site = c["host"], c["site"]
+    api = f"https://{host}/hcmRestApi/resources/latest"
+    jobs, offset = [], 0
+    while offset < 2000:
+        finder = f"findReqs;siteNumber={site},limit=25,offset={offset},sortBy=POSTING_DATES_DESC"
+        items = _get(f"{api}/recruitingCEJobRequisitions?onlyData=true&expand=requisitionList.secondaryLocations&finder={finder}")["items"]
+        posts = (items[0].get("requisitionList") or []) if items else []
+        for j in posts:
+            posted = datetime.fromisoformat(j["PostedDate"]).replace(tzinfo=timezone.utc)
+            if posted.date() < cutoff.date():
+                return jobs
+            others = j.get("secondaryLocations") or []
+            if j.get("PrimaryLocationCountry") != "IN" and not any(o.get("CountryCode") == "IN" for o in others):
+                continue
+            loc = " | ".join(filter(None, [j.get("PrimaryLocation")] + [o.get("Name") for o in others] + ["India"]))
+            jobs.append(Job(c["name"], c["careers_url"], j["Title"],
+                            f"https://{host}/hcmUI/CandidateExperience/en/sites/{site}/job/{j['Id']}", loc, posted,
+                            _detail={"kind": "oracle", "url": f"{api}/recruitingCEJobRequisitionDetails?onlyData=true&expand=all"
+                                                              f"&finder=ById;Id=%22{j['Id']}%22,siteNumber={site}"}))
+        if len(posts) < 25:
+            return jobs
+        offset += 25
+    return jobs
+
+
+# --- Eightfold (the career site's own search API) --------------------------------
+
+def eightfold(c, cutoff):
+    host, domain = c["host"], c["domain"]
+    jobs, start = [], 0
+    while start < 1000:
+        posts = _get(f"https://{host}/api/pcsx/search",
+                     params={"domain": domain, "query": "", "location": "India", "start": start, "sort_by": "timestamp"})["data"]["positions"]
+        recent = 0
+        for j in posts:
+            posted = datetime.fromtimestamp(j["postedTs"], tz=timezone.utc)
+            if posted < cutoff:
+                continue
+            recent += 1
+            jobs.append(Job(c["name"], c["careers_url"], j["name"], f"https://{host}{j['positionUrl']}",
+                            " | ".join(j.get("locations") or []), posted,
+                            _detail={"kind": "eightfold", "url": f"https://{host}/api/pcsx/position_details?position_id={j['id']}&domain={domain}&hl=en"}))
+        if not posts or recent == 0:
+            return jobs
+        start += len(posts)
+    return jobs
+
+
+# --- AMD (its own job search API, descriptions included) --------------------------
+
+def amd(c, cutoff):
+    jobs, page = [], 1
+    while page <= 20:
+        d = _get("https://careers.amd.com/api/jobs",
+                 params={"location": "India", "page": page, "limit": 100, "sortBy": "posted_date", "descending": "true"})
+        posts = d.get("jobs") or []
+        for x in posts:
+            j = x["data"]
+            posted = datetime.strptime(j["posted_date"], "%Y-%m-%dT%H:%M:%S%z")
+            if posted < cutoff:
+                return jobs
+            if j.get("country_code") != "IN":
+                continue
+            desc = "\n".join(strip_html(j.get(k) or "") for k in ("description", "qualifications", "responsibilities"))
+            jobs.append(Job(c["name"], c["careers_url"], j["title"], f"https://careers.amd.com/careers-home/jobs/{j['slug']}",
+                            f"{j.get('full_location') or j.get('city') or ''} | India", posted, desc))
+        if len(posts) < 100:
+            return jobs
+        page += 1
+    return jobs
+
+
+# --- IBM (its own search API; it gives no posting date, so a job counts as posted on the day we first see it) ---
+
+IBM_SEEN_FILE = Path(__file__).parent / "ibm_seen.json"
+_ibm_seen = None
+
+
+def ibm(c, cutoff):
+    global _ibm_seen
+    found, offset = {}, 0
+    while offset < 5000:
+        body = {"appId": "careers", "scopes": ["careers2"], "query": {"bool": {"must": []}},
+                "post_filter": {"term": {"field_keyword_05": "India"}}, "size": 100, "from": offset, "sort": [{"_id": "asc"}],
+                "lang": "zz", "localeSelector": {}, "sm": {"query": "", "lang": "zz"},
+                "_source": ["title", "url", "body", "field_keyword_19"]}
+        hits = _post("https://www-api.ibm.com/search/api/v2", body)["hits"]
+        found.update((h["_source"]["url"], h["_source"]) for h in hits["hits"])
+        offset += 100
+        if not hits["hits"] or offset >= hits["total"]["value"]:
+            break
+
+    known = json.loads(IBM_SEEN_FILE.read_text()) if IBM_SEEN_FILE.exists() else None
+    today = datetime.now(timezone.utc).date().isoformat()
+    seen, jobs = dict(known or {}), []
+    for url, j in found.items():
+        # With no history yet, everything listed today is treated as old, so only later arrivals count as new.
+        first = seen.setdefault(url, today if known is not None else "2000-01-01")
+        posted = datetime.fromisoformat(first).replace(tzinfo=timezone.utc)
+        if posted.date() < cutoff.date():
+            continue
+        jobs.append(Job(c["name"], c["careers_url"], j["title"], url, f"{j.get('field_keyword_19') or ''} | India", posted,
+                        strip_html(j.get("body") or "")))
+    _ibm_seen = seen
+    return jobs
+
+
+def save_ibm_seen() -> None:
+    if _ibm_seen is not None:
+        IBM_SEEN_FILE.write_text(json.dumps(_ibm_seen, indent=0, sort_keys=True))
+
+
 def fetch_company(c, cutoff, max_days):
     if c["ats"] == "workday":
         return workday(c, cutoff, max_days)
     return {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters,
-            "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong}[c["ats"]](c, cutoff)
+            "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong,
+            "oracle": oracle, "eightfold": eightfold, "amd": amd, "ibm": ibm}[c["ats"]](c, cutoff)
 
 
 def load_description(job: Job) -> None:
@@ -305,6 +439,12 @@ def load_description(job: Job) -> None:
         job.description = strip_html(data.get("content", ""))
         offices = [o.get("location") or o.get("name") or "" for o in data.get("offices") or []]
         job.location = " | ".join(filter(None, [job.location] + offices))
+    elif d["kind"] == "oracle":
+        info = (data.get("items") or [{}])[0]
+        job.description = "\n".join(strip_html(info.get(k) or "") for k in
+                                    ("ExternalDescriptionStr", "ExternalResponsibilitiesStr", "ExternalQualificationsStr"))
+    elif d["kind"] == "eightfold":
+        job.description = strip_html((data.get("data") or {}).get("jobDescription", ""))
     elif d["kind"] == "peoplestrong":
         desc = strip_html((data.get("response") or {}).get("jobDescription", ""))
         job.description = (f"Required experience: {d['exp']}\n" if d["exp"] else "") + desc

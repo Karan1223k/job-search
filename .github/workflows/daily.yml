@@ -64,7 +64,7 @@ jobs:
           TZ=Asia/Kolkata date +%F > last_run.txt
           git config user.name "job-search-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add sent_jobs.json last_run.txt
+          git add sent_jobs.json last_run.txt ibm_seen.json
           git diff --cached --quiet || git commit -m "Daily run $(TZ=Asia/Kolkata date +%F)"
           git pull --rebase --quiet
           git push
