@@ -53,6 +53,11 @@ REJECT_PHRASE_RE = re.compile(
     re.I,
 )
 
+# Companies whose postings usually state no years and whose level tag says nothing ("Professional" covers
+# nearly every IBM job, from new hires to 20-year veterans). With no years stated, these need explicit entry-level wording.
+MUST_STATE_ENTRY_LEVEL = {"IBM"}
+EXPLICIT_ENTRY_RE = re.compile(r"entry[- ]level|early[- ](professional|career)|new grad|recent graduate|fresher|campus hire", re.I)
+
 ENTRY_LEVEL_RE = re.compile(
     r"new grad|graduate|entry[- ]level|early career|fresher|0\s*[-–to]+\s*[12]\s*(years|yrs)|junior|\bassociate\b|\bamts\b|associate member|\bengineer I\b|\bdeveloper 1\b",
     re.I,

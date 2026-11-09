@@ -1607,11 +1607,6 @@
   "careers_url": "https://careers-bmwtechworks.peoplestrong.com/job/joblist"
  },
  {
-  "name": "IBM",
-  "ats": "ibm",
-  "careers_url": "https://www.ibm.com/careers/search"
- },
- {
   "name": "Swiggy",
   "ats": "smartrecruiters",
   "token": "Swiggy",

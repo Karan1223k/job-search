@@ -13,6 +13,8 @@ EXPLICIT_RE = re.compile(r"(?:(?:minimum|min\.?|at least|over|more than)\s*(?:of
                          + NUM + r"\s*\+\s*(?:years?|yrs?))", re.I)                    # "at least 3 years", "3+ years"
 PLAIN_RE = re.compile(NUM + YEARS, re.I)                                                  # "3 years" (needs context)
 EXPERIENCE_CONTEXT = re.compile(r"experience|exp\b|background|track record|working|\bin\s+(?:a|the)?\s*\w+", re.I)
+LARGE_RANGE_CONTEXT = re.compile(r"experience|\bexp\b", re.I)
+AGE_CONTEXT = re.compile(r"\bage(?:d)?\b", re.I)
 
 
 def _num(s: str | None) -> int | None:
@@ -28,18 +30,20 @@ def required_years(text: str) -> int | None:
     """
     found, taken = [], []
 
-    def add(m, years, need_context):
+    def add(m, years, need_context, is_range=False):
         # A later, looser pattern must not re-read part of an already-matched phrase.
         if any(s <= m.start() < e for s, e in taken):
             return
         taken.append(m.span())
         if need_context and not EXPERIENCE_CONTEXT.search(text[max(0, m.start() - 80): m.end() + 60]):
             return
-        if years <= 15:  # ignore "20 years of company history" / "35 yrs and above" style noise
+        # Ignore "20 years of company history" / "35 yrs and above" style noise, but keep "18-20 years of experience".
+        around = text[max(0, m.start() - 40): m.end() + 40]
+        if years <= 15 or (is_range and LARGE_RANGE_CONTEXT.search(around) and not AGE_CONTEXT.search(around)):
             found.append(years)
 
     for m in RANGE_RE.finditer(text):
-        add(m, _num(m.group(1)), need_context=False)
+        add(m, _num(m.group(1)), need_context=False, is_range=True)
     for m in EXPLICIT_RE.finditer(text):
         add(m, _num(m.group(1)) if m.group(1) else _num(m.group(2)), need_context=False)
     for m in PLAIN_RE.finditer(text):
@@ -65,6 +69,8 @@ def experience_ok(job) -> bool:
     job.required_years = years
     if years is not None:
         return years <= config.MAX_MIN_EXPERIENCE_YEARS
+    if job.company in config.MUST_STATE_ENTRY_LEVEL:
+        return bool(config.EXPLICIT_ENTRY_RE.search(job.title + "\n" + job.description))
     # No years stated: fall back to wording that signals a senior role.
     return not config.SENIOR_PHRASE_RE.search(job.description)
 

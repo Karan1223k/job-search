@@ -4,8 +4,7 @@ Runs every day at 9:00 AM IST on GitHub Actions:
 
 1. Fetches jobs posted in the last 5 days directly from ~240 companies' official careers portals
    (`companies.json`: Greenhouse, Lever, Ashby, SmartRecruiters, Workday, SuccessFactors, PeopleStrong, Oracle Cloud and
-   Eightfold boards, plus Mercedes-Benz, AMD and IBM's own job APIs; no aggregators). IBM gives no posting date, so its
-   jobs count as posted on the day they first appear (`ibm_seen.json`).
+   Eightfold boards, plus Mercedes-Benz and AMD's own job APIs; no aggregators).
 2. Keeps jobs in India (or remote-open-to-India) with a non-senior data science / AI / ML /
    data engineering / software engineering title and a stated
    minimum experience requirement of 0 or 1 year (ranges count by their lower bound, so "1-3 years"
