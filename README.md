@@ -11,8 +11,7 @@ Runs every day at 9:00 AM IST on GitHub Actions:
    passes and "2-5 years" / "2+ years" are rejected; jobs that state no years are kept unless the
    description reads as senior).
 3. Scores each job against both resumes (`resume_ai.txt`, `resume_ds.txt`; embedding similarity +
-   that resume's weighted skill keywords) and ranks by the better fit, minus 0.04 per day of age
-   after the first, so fresher jobs rank higher unless an older one is a much better fit.
+   that resume's weighted skill keywords) and ranks by the better fit.
 4. Adds the name of each company with a matching job to the Google Sheet, if it isn't listed yet.
 5. Emails 10 jobs, each labelled with the better-fitting resume. Jobs not emailed before come first,
    even if they rank lower; previously sent ones (tagged "(sent before)") only fill leftover slots.

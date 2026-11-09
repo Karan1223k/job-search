@@ -98,8 +98,7 @@ def main():
     now = datetime.now(timezone.utc)
     for j in matches:
         j.age_days = max(0, (now - j.posted).days) if j.posted else 0
-        j.score = round(j.score - config.AGE_PENALTY_PER_DAY * max(0, j.age_days - 1), 4)
-    matches.sort(key=lambda j: j.score, reverse=True)
+    matches.sort(key=lambda j: j.score, reverse=True)  # best resume match first; MAX_AGE_DAYS is the only recency rule
 
     sent = load_sent()
     unique, seen_titles = [], set()
