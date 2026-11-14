@@ -372,6 +372,30 @@ def amd(c, cutoff):
     return jobs
 
 
+# --- Amazon (amazon.jobs search API, descriptions included; "recent" order is only roughly by date) ---
+
+def amazon(c, cutoff):
+    jobs, offset = [], 0
+    while offset < 3000:
+        posts = _get("https://www.amazon.jobs/en/search.json",
+                     params={"country": "IND", "sort": "recent", "result_limit": 100, "offset": offset}).get("jobs") or []
+        recent = 0
+        for j in posts:
+            posted = datetime.strptime(j["posted_date"], "%B %d, %Y").replace(tzinfo=timezone.utc)
+            if posted.date() < cutoff.date():
+                continue
+            recent += 1
+            if j.get("is_intern"):
+                continue
+            desc = "\n".join(strip_html(j.get(k) or "") for k in ("description", "basic_qualifications", "preferred_qualifications"))
+            jobs.append(Job(c["name"], c["careers_url"], j["title"], f"https://www.amazon.jobs{j['job_path']}",
+                            f"{j.get('normalized_location') or j.get('location') or ''} | India", posted, desc))
+        if len(posts) < 100 or recent == 0:
+            return jobs
+        offset += 100
+    return jobs
+
+
 # --- IBM (its own search API; it gives no posting date, so a job counts as posted on the day we first see it) ---
 
 IBM_SEEN_FILE = Path(__file__).parent / "ibm_seen.json"
@@ -417,7 +441,7 @@ def fetch_company(c, cutoff, max_days):
         return workday(c, cutoff, max_days)
     return {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters,
             "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong,
-            "oracle": oracle, "eightfold": eightfold, "amd": amd, "ibm": ibm}[c["ats"]](c, cutoff)
+            "oracle": oracle, "eightfold": eightfold, "amd": amd, "amazon": amazon, "ibm": ibm}[c["ats"]](c, cutoff)
 
 
 def load_description(job: Job) -> None:

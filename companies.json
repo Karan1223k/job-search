@@ -1653,6 +1653,25 @@
   "careers_url": "https://jpmc.fa.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX_1001/jobs"
  },
  {
+  "name": "Goldman Sachs",
+  "ats": "oracle",
+  "host": "hdpc.fa.us2.oraclecloud.com",
+  "site": "LateralHiring",
+  "careers_url": "https://hdpc.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/LateralHiring/jobs"
+ },
+ {
+  "name": "Morgan Stanley",
+  "ats": "eightfold",
+  "host": "morganstanley.eightfold.ai",
+  "domain": "morganstanley.com",
+  "careers_url": "https://morganstanley.eightfold.ai/careers"
+ },
+ {
+  "name": "Amazon",
+  "ats": "amazon",
+  "careers_url": "https://www.amazon.jobs/en/search?country=IND"
+ },
+ {
   "name": "Oracle",
   "ats": "oracle",
   "host": "eeho.fa.us2.oraclecloud.com",
