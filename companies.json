@@ -1628,8 +1628,17 @@
  },
  {
   "name": "AMD",
-  "ats": "amd",
+  "ats": "jibe",
+  "host": "careers.amd.com",
+  "job_path": "careers-home/jobs",
   "careers_url": "https://careers.amd.com/careers-home/jobs"
+ },
+ {
+  "name": "ZS Associates",
+  "ats": "jibe",
+  "host": "jobs.zs.com",
+  "job_path": "jobs",
+  "careers_url": "https://jobs.zs.com/jobs"
  },
  {
   "name": "Mahindra",

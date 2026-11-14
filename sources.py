@@ -348,12 +348,13 @@ def eightfold(c, cutoff):
     return jobs
 
 
-# --- AMD (its own job search API, descriptions included) --------------------------
+# --- iCIMS Jibe career sites (AMD, ZS): /api/jobs search, descriptions included ----
 
-def amd(c, cutoff):
+def jibe(c, cutoff):
+    host = c["host"]
     jobs, page = [], 1
     while page <= 20:
-        d = _get("https://careers.amd.com/api/jobs",
+        d = _get(f"https://{host}/api/jobs",
                  params={"location": "India", "page": page, "limit": 100, "sortBy": "posted_date", "descending": "true"})
         posts = d.get("jobs") or []
         for x in posts:
@@ -364,7 +365,7 @@ def amd(c, cutoff):
             if j.get("country_code") != "IN":
                 continue
             desc = "\n".join(strip_html(j.get(k) or "") for k in ("description", "qualifications", "responsibilities"))
-            jobs.append(Job(c["name"], c["careers_url"], j["title"], f"https://careers.amd.com/careers-home/jobs/{j['slug']}",
+            jobs.append(Job(c["name"], c["careers_url"], j["title"], f"https://{host}/{c['job_path']}/{j['slug']}",
                             f"{j.get('full_location') or j.get('city') or ''} | India", posted, desc))
         if len(posts) < 100:
             return jobs
@@ -441,7 +442,7 @@ def fetch_company(c, cutoff, max_days):
         return workday(c, cutoff, max_days)
     return {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters,
             "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong,
-            "oracle": oracle, "eightfold": eightfold, "amd": amd, "amazon": amazon, "ibm": ibm}[c["ats"]](c, cutoff)
+            "oracle": oracle, "eightfold": eightfold, "jibe": jibe, "amazon": amazon, "ibm": ibm}[c["ats"]](c, cutoff)
 
 
 def load_description(job: Job) -> None:
