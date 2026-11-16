@@ -49,10 +49,17 @@ def filter_jobs(jobs):
             sources.load_description(j)
         except Exception as e:
             log.warning("description failed for %s: %s", j.url, str(e)[:120])
+            j.description_failed = True
 
     with ThreadPoolExecutor(16) as ex:
         list(ex.map(load, candidates))
 
+    # Without a description the experience check can't see the years asked for, so skip the job today;
+    # it isn't marked as sent and will be picked up on a later run.
+    failed = [j for j in candidates if getattr(j, "description_failed", False)]
+    if failed:
+        log.info("skipping %d jobs whose description didn't load", len(failed))
+    candidates = [j for j in candidates if not getattr(j, "description_failed", False)]
     in_india = [j for j in candidates if matching.location_ok(j.location)]
     log.info("%d in India / remote-India", len(in_india))
     matches = [j for j in in_india if matching.experience_ok(j)]

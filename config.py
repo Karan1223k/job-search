@@ -30,7 +30,7 @@ ROLE_RE = re.compile(
 )
 # Titles that signal too much seniority or the wrong kind of job.
 EXCLUDE_TITLE_RE = re.compile(
-    r"senior|\bsr\.?\b|\blead\b|principal|staff|manager|director|\bhead\b|\bvp\b|vice president|architect|chief|"
+    r"senior|\bsr\.?\b|\blead\b|\bleader\b|principal|staff|manager|director|\bhead\b|\bvp\b|vice president|architect|chief|"
     r"distinguished|fellow|\bII\b|\bIII\b|\bIV\b|\bAVP\b|assistant vice|,\s*AS\b|\bL3\b|technical specialist|\bL[5-9]\b|intern\b|internship|sales|account executive|marketing|recruit|"
     r"counsel|legal|designer|frontend|front-end|\bios\b|android|embedded|firmware|hardware|asic|verification|"
     r"analog|rf |mechanical|electrical|technician|network|\btest\b|\bqa\b|quality|security|cyber|support|"

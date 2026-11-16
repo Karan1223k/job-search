@@ -9,6 +9,7 @@ from __future__ import annotations
 import html
 import json
 import re
+import threading
 import time
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
@@ -24,6 +25,8 @@ INDIA_COUNTRY_ID = "c4f78be1a8f14da0ab49ce1162348a5e"  # Workday's global refere
 
 session = requests.Session()
 session.headers.update(UA)
+# Workday rate-limits description requests across tenants; too many at once gets 429s even after retries.
+_workday_slots = threading.Semaphore(4)
 _adapter = requests.adapters.HTTPAdapter(pool_connections=64, pool_maxsize=32)
 session.mount("https://", _adapter)
 
@@ -459,7 +462,11 @@ def load_description(job: Job) -> None:
         r.raise_for_status()
         job.description = strip_html(re.sub(r"<(script|style)\b.*?</\1>", " ", r.text, flags=re.S | re.I))
         return
-    data = _get(d["url"])
+    if d["kind"] == "workday":
+        with _workday_slots:
+            data = _get(d["url"])
+    else:
+        data = _get(d["url"])
     if d["kind"] == "greenhouse":
         job.description = strip_html(data.get("content", ""))
         offices = [o.get("location") or o.get("name") or "" for o in data.get("offices") or []]
