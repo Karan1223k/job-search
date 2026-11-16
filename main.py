@@ -60,6 +60,10 @@ def filter_jobs(jobs):
     if failed:
         log.info("skipping %d jobs whose description didn't load", len(failed))
     candidates = [j for j in candidates if not getattr(j, "description_failed", False)]
+    stack = [j for j in candidates if not matching.stack_ok(j)]
+    for j in stack:
+        log.info("dropping full stack / front end / back end role: %s - %s", j.company, j.title)
+    candidates = [j for j in candidates if j not in stack]
     in_india = [j for j in candidates if matching.location_ok(j.location)]
     log.info("%d in India / remote-India", len(in_india))
     matches = [j for j in in_india if matching.experience_ok(j)]

@@ -32,7 +32,7 @@ ROLE_RE = re.compile(
 EXCLUDE_TITLE_RE = re.compile(
     r"senior|\bsr\.?\b|\blead\b|\bleader\b|principal|staff|manager|director|\bhead\b|\bvp\b|vice president|architect|chief|"
     r"distinguished|fellow|\bII\b|\bIII\b|\bIV\b|\bAVP\b|assistant vice|,\s*AS\b|\bL3\b|technical specialist|\bL[5-9]\b|intern\b|internship|sales|account executive|marketing|recruit|"
-    r"counsel|legal|designer|frontend|front-end|\bios\b|android|embedded|firmware|hardware|asic|verification|"
+    r"counsel|legal|designer|full[- ]?stack|front[- ]?end|back[- ]?end|\bui\b|\bweb\b|react|angular|node\.?js|\bios\b|android|embedded|firmware|hardware|asic|verification|"
     r"analog|rf |mechanical|electrical|technician|network|\btest\b|\bqa\b|quality|security|cyber|support|"
     r"devops|site reliability|\bsre\b|mainframe|sap\b|salesforce developer|servicenow",
     re.I,
@@ -49,6 +49,13 @@ SENIOR_PHRASE_RE = re.compile(
 REJECT_PHRASE_RE = re.compile(
     r"(seeking|looking for|hiring|hire) an? (highly )?(experienced|senior|seasoned)|\bsenior [a-z]+ (engineer|developer|specialist)|"
     r"\bas an intern\b|this internship|internship (program|duration|period)|\binterns? (will|in this)",
+    re.I,
+)
+
+# For general software titles ("Software Engineer"), description wording that shows the role is
+# really full stack / front end / back end work, which the user doesn't want.
+STACK_ROLE_RE = re.compile(
+    r"(full[- ]?stack|front[- ]?end|back[- ]?end)\s+(software\s+)?(developer|engineer|development|engineering|role|position)",
     re.I,
 )
 

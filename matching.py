@@ -61,6 +61,13 @@ def title_ok(title: str) -> bool:
     return bool(config.ROLE_RE.search(title)) and not config.EXCLUDE_TITLE_RE.search(title)
 
 
+def stack_ok(job) -> bool:
+    """Drop full stack / front end / back end roles hiding behind a plain software title."""
+    if CORE_TITLE_RE.search(job.title):
+        return True
+    return not config.STACK_ROLE_RE.search(job.description)
+
+
 def experience_ok(job) -> bool:
     if config.REJECT_PHRASE_RE.search(job.description):
         job.required_years = None
