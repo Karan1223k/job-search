@@ -532,6 +532,107 @@ def rippling(c, cutoff):
     return jobs
 
 
+# --- Company career sites whose job pages carry schema.org JobPosting data (Kula, JazzHR, Trakstar...) ---
+# The list page is scanned for job links; only links whose slug looks like a relevant title are opened.
+
+def _job_posting_ld(page: str) -> dict | None:
+    for raw in re.findall(r'<script[^>]+application/ld\+json[^>]*>(.*?)</script>', page, re.S | re.I):
+        try:
+            data = json.loads(raw, strict=False)
+        except ValueError:
+            continue
+        stack = [data]
+        while stack:
+            d = stack.pop()
+            if isinstance(d, list):
+                stack.extend(d)
+            elif isinstance(d, dict):
+                if d.get("@type") == "JobPosting":
+                    return d
+                stack.extend(d.get("@graph") or [])
+    return None
+
+
+def _ld_location(ld: dict) -> str:
+    places = ld.get("jobLocation") or []
+    places = places if isinstance(places, list) else [places]
+    locs = []
+    for p in places:
+        a = (p or {}).get("address") or {}
+        if isinstance(a, str):
+            locs.append(a)
+        else:
+            country = a.get("addressCountry")
+            country = country.get("name") if isinstance(country, dict) else country
+            locs.append(", ".join(filter(None, [a.get("addressLocality"), a.get("addressRegion"), country])))
+    if ld.get("jobLocationType") == "TELECOMMUTE":
+        locs.append("Remote")
+    return " | ".join(filter(None, locs))
+
+
+def jobpages(c, cutoff):
+    from matching import title_ok
+    r = session.get(c["list_url"], timeout=TIMEOUT)
+    r.raise_for_status()
+    base = re.match(r"https?://[^/]+", r.url).group(0)
+    links = []
+    for href in re.findall(r'href="([^"#?]+)', r.text):
+        url = href if href.startswith("http") else base + href
+        if re.search(c["link_re"], url) and url not in links:
+            links.append(url)
+    jobs = []
+    for url in links:
+        slug_title = re.sub(r"^\d+-|[-_]+", " ", url.rstrip("/").rsplit("/", 1)[-1]).strip()
+        if c.get("slug_titles", True) and not title_ok(slug_title):
+            continue
+        page = session.get(url, timeout=TIMEOUT)
+        if page.status_code != 200:
+            continue
+        ld = _job_posting_ld(page.text)
+        if not ld:
+            continue
+        posted = _iso(ld.get("datePosted"))
+        if posted and posted.tzinfo is None:
+            posted = posted.replace(tzinfo=timezone.utc)
+        if posted and posted < cutoff:
+            continue
+        jobs.append(Job(c["name"], c["careers_url"], html.unescape(ld.get("title") or slug_title), url, _ld_location(ld), posted,
+                        strip_html(ld.get("description") or "")))
+    return jobs
+
+
+# --- ainterviews.com job boards (Lenskart) ---
+
+def ainterviews(c, cutoff):
+    t = c["token"]
+    jobs = []
+    for j in _get(f"https://ainterviews.com/api/job_board/{t}/jobs/").get("jobs") or []:
+        posted = _iso(j.get("posted_date"))
+        if posted and posted < cutoff:
+            continue
+        level = j.get("experience_level") or ""
+        desc = (f"Experience level: {level}\n" if level else "") + strip_html(j.get("description") or "")
+        jobs.append(Job(c["name"], c["careers_url"], j["title"], f"https://ainterviews.com{j['apply_url']}",
+                        j.get("location") or "", posted, desc))
+    return jobs
+
+
+# --- Gem job boards (Greenhouse-style API, descriptions included) ---
+
+def gem(c, cutoff):
+    jobs = []
+    for j in _get(f"https://api.gem.com/job_board/v0/{c['token']}/job_posts/"):
+        posted = _iso(j.get("first_published_at") or j.get("created_at"))
+        if posted and posted < cutoff:
+            continue
+        locs = [(j.get("location") or {}).get("name") or ""] + [o.get("name", "") for o in j.get("offices") or []]
+        if j.get("location_type") == "remote":
+            locs.append("Remote")
+        jobs.append(Job(c["name"], c["careers_url"], j["title"], j["absolute_url"], " | ".join(filter(None, locs)), posted,
+                        j.get("content_plain") or strip_html(j.get("content") or "")))
+    return jobs
+
+
 def _mark_remote_india(jobs):
     """India-based companies often list a role as just "Remote"; for them that means remote within India."""
     for j in jobs:
@@ -548,7 +649,8 @@ def fetch_company(c, cutoff, max_days):
         jobs = {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters,
                 "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong,
                 "oracle": oracle, "eightfold": eightfold, "jibe": jibe, "amazon": amazon, "ibm": ibm,
-                "keka": keka, "freshteam": freshteam, "workable": workable, "rippling": rippling}[c["ats"]](c, cutoff)
+                "keka": keka, "freshteam": freshteam, "workable": workable, "rippling": rippling,
+                "jobpages": jobpages, "ainterviews": ainterviews, "gem": gem}[c["ats"]](c, cutoff)
     return _mark_remote_india(jobs) if c.get("remote_india") else jobs
 
 

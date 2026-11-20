@@ -1878,5 +1878,71 @@
   "ats": "rippling",
   "token": "rippling",
   "careers_url": "https://ats.rippling.com/rippling/jobs"
+ },
+ {
+  "name": "Cashfree Payments",
+  "ats": "jobpages",
+  "list_url": "https://careers.kula.ai/cashfree",
+  "link_re": "careers\\.kula\\.ai/cashfree/\\d+-",
+  "careers_url": "https://careers.kula.ai/cashfree",
+  "remote_india": true
+ },
+ {
+  "name": "MoEngage",
+  "ats": "jobpages",
+  "list_url": "https://careers.kula.ai/moengage",
+  "link_re": "careers\\.kula\\.ai/moengage/\\d+-",
+  "careers_url": "https://careers.kula.ai/moengage",
+  "remote_india": true
+ },
+ {
+  "name": "Plum",
+  "ats": "jobpages",
+  "list_url": "https://careers.kula.ai/plumhq",
+  "link_re": "careers\\.kula\\.ai/plumhq/\\d+-",
+  "careers_url": "https://careers.kula.ai/plumhq",
+  "remote_india": true
+ },
+ {
+  "name": "Jar",
+  "ats": "jobpages",
+  "list_url": "https://changejar.applytojob.com/apply",
+  "link_re": "changejar\\.applytojob\\.com/apply/\\w+/[\\w-]+",
+  "careers_url": "https://changejar.applytojob.com/apply",
+  "remote_india": true
+ },
+ {
+  "name": "Whatfix",
+  "ats": "jobpages",
+  "list_url": "https://whatfix101.hire.trakstar.com/",
+  "link_re": "whatfix101\\.hire\\.trakstar\\.com/jobs/\\w+",
+  "slug_titles": false,
+  "careers_url": "https://whatfix101.hire.trakstar.com/",
+  "remote_india": true
+ },
+ {
+  "name": "Lenskart",
+  "ats": "ainterviews",
+  "token": "lenskart_ho",
+  "careers_url": "https://ainterviews.com/job_board/lenskart_ho/",
+  "remote_india": true
+ },
+ {
+  "name": "PromptQL (Hasura)",
+  "ats": "gem",
+  "token": "promptql",
+  "careers_url": "https://jobs.gem.com/promptql"
+ },
+ {
+  "name": "Innovaccer",
+  "ats": "workable",
+  "token": "innovaccer-analytics",
+  "careers_url": "https://apply.workable.com/innovaccer-analytics/"
+ },
+ {
+  "name": "Chargebee",
+  "ats": "successfactors",
+  "host": "jobs.chargebee.com",
+  "careers_url": "https://jobs.chargebee.com/"
  }
 ]
