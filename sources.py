@@ -186,7 +186,7 @@ def workday(c, cutoff, max_days):
     applied = {facet[0]: [facet[1]]} if facet else {}
     search = "" if facet else "India"
 
-    jobs, offset = [], 0
+    jobs, offset, total = [], 0, 0
     while offset < 1000:
         try:
             d = _post(f"{api}/jobs", {"limit": 20, "offset": offset, "searchText": search, "appliedFacets": applied})
@@ -209,7 +209,11 @@ def workday(c, cutoff, max_days):
         # Text-search results are ordered by relevance, so those have to be read to the end.
         if not posts or (facet and recent == 0):
             break
+        # Workday reports the total only on the first page, and past the end it repeats the last page instead of stopping.
+        total = total or d.get("total") or 0
         offset += 20
+        if total and offset >= total:
+            break
     return jobs
 
 
@@ -440,12 +444,112 @@ def save_ibm_seen() -> None:
         IBM_SEEN_FILE.write_text(json.dumps(_ibm_seen, indent=0, sort_keys=True))
 
 
+# --- Keka (Indian HR suite; the careers widget feed has descriptions and an experience field) ---
+
+def keka(c, cutoff):
+    t = c["token"]
+    jobs = []
+    for j in _get(f"https://{t}.keka.com/careers/api/embedjobs/default/active/{c['portal_id']}"):
+        posted = _iso(j.get("publishedOn"))
+        if posted and posted < cutoff:
+            continue
+        locs = [", ".join(filter(None, [l.get("city"), l.get("countryName")])) for l in j.get("jobLocations") or []]
+        exp = j.get("experience") or ""
+        desc = (f"Required experience: {exp}\n" if exp else "") + strip_html(j.get("description") or "")
+        jobs.append(Job(c["name"], c["careers_url"], j["title"], f"https://{t}.keka.com/careers/jobdetails/{j['id']}",
+                        " | ".join(filter(None, locs)), posted, desc))
+    return jobs
+
+
+# --- Freshteam (public jobs widget; branches hold the office locations) ---
+
+def freshteam(c, cutoff):
+    d = _get(f"https://{c['token']}.freshteam.com/hire/widgets/jobs.json")
+    branches = {b["id"]: b.get("location") or b.get("city") or "" for b in d.get("branches") or []}
+    jobs = []
+    for j in d.get("jobs") or []:
+        posted = _iso(j.get("created_at"))
+        if posted and posted < cutoff:
+            continue
+        locs = [branches.get(j.get("branch_id"), ""), j.get("preferred_remote_job_locations") or ""]
+        if j.get("remote"):
+            locs.append("Remote")
+        jobs.append(Job(c["name"], c["careers_url"], j["title"], j["url"], " | ".join(filter(None, locs)), posted,
+                        strip_html(j.get("description") or "")))
+    return jobs
+
+
+# --- Workable (apply.workable.com; the list has no description, so it is loaded later) ---
+
+def workable(c, cutoff):
+    t = c["token"]
+    jobs, token = [], None
+    for _ in range(20):
+        body = {"query": "", "location": [], "department": [], "worktype": [], "remote": []}
+        if token:
+            body["token"] = token
+        d = _post(f"https://apply.workable.com/api/v3/accounts/{t}/jobs", body)
+        for j in d.get("results") or []:
+            posted = _iso(j.get("published"))
+            if posted and posted < cutoff:
+                continue
+            locs = [", ".join(filter(None, [l.get("city"), l.get("country")])) for l in j.get("locations") or [j.get("location") or {}]]
+            if j.get("remote") or j.get("workplace") == "remote":
+                locs.append("Remote")
+            jobs.append(Job(c["name"], c["careers_url"], j["title"], f"https://apply.workable.com/{t}/j/{j['shortcode']}/",
+                            " | ".join(filter(None, locs)), posted,
+                            _detail={"kind": "workable", "url": f"https://apply.workable.com/api/v2/accounts/{t}/jobs/{j['shortcode']}"}))
+        token = d.get("nextPage")
+        if not token:
+            break
+    return jobs
+
+
+# --- Rippling ATS (the list has no dates, so India jobs with a relevant title get their detail here) ---
+
+def rippling(c, cutoff):
+    from matching import title_ok
+    t = c["token"]
+    picked, page = [], 0
+    while page < 30:
+        d = _get(f"https://ats.rippling.com/api/v2/board/{t}/jobs", params={"page": page, "pageSize": 100})
+        for j in d.get("items") or []:
+            if any(l.get("countryCode") == "IN" for l in j.get("locations") or []) and title_ok(j["name"]):
+                picked.append(j)
+        page += 1
+        if page >= d.get("totalPages", 0):
+            break
+    jobs = []
+    for j in picked:
+        info = _get(f"https://api.rippling.com/platform/api/ats/v1/board/{t}/jobs/{j['id']}")
+        posted = _iso(info.get("createdOn"))
+        if posted and posted < cutoff:
+            continue
+        locs = [", ".join(filter(None, [l.get("name"), l.get("country")])) +
+                (" (Remote)" if l.get("workplaceType") == "REMOTE" else "") for l in j.get("locations") or []]
+        desc = "\n".join(strip_html(v or "") for v in (info.get("description") or {}).values())
+        jobs.append(Job(c["name"], c["careers_url"], j["name"], j["url"], " | ".join(locs), posted, desc))
+    return jobs
+
+
+def _mark_remote_india(jobs):
+    """India-based companies often list a role as just "Remote"; for them that means remote within India."""
+    for j in jobs:
+        parts = [p.strip() for p in re.split(r"[|,;/()\-]", j.location) if p.strip()]
+        if parts and all(re.fullmatch(r"remote|work from home|wfh|hybrid|anywhere", p, re.I) for p in parts):
+            j.location += " | India"
+    return jobs
+
+
 def fetch_company(c, cutoff, max_days):
     if c["ats"] == "workday":
-        return workday(c, cutoff, max_days)
-    return {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters,
-            "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong,
-            "oracle": oracle, "eightfold": eightfold, "jibe": jibe, "amazon": amazon, "ibm": ibm}[c["ats"]](c, cutoff)
+        jobs = workday(c, cutoff, max_days)
+    else:
+        jobs = {"greenhouse": greenhouse, "lever": lever, "ashby": ashby, "smartrecruiters": smartrecruiters,
+                "successfactors": successfactors, "mercedes": mercedes, "peoplestrong": peoplestrong,
+                "oracle": oracle, "eightfold": eightfold, "jibe": jibe, "amazon": amazon, "ibm": ibm,
+                "keka": keka, "freshteam": freshteam, "workable": workable, "rippling": rippling}[c["ats"]](c, cutoff)
+    return _mark_remote_india(jobs) if c.get("remote_india") else jobs
 
 
 def load_description(job: Job) -> None:
@@ -475,6 +579,8 @@ def load_description(job: Job) -> None:
         info = (data.get("items") or [{}])[0]
         job.description = "\n".join(strip_html(info.get(k) or "") for k in
                                     ("ExternalDescriptionStr", "ExternalResponsibilitiesStr", "ExternalQualificationsStr"))
+    elif d["kind"] == "workable":
+        job.description = "\n".join(strip_html(data.get(k) or "") for k in ("description", "requirements"))
     elif d["kind"] == "eightfold":
         job.description = strip_html((data.get("data") or {}).get("jobDescription", ""))
     elif d["kind"] == "peoplestrong":

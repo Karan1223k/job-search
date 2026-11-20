@@ -21,7 +21,8 @@
   "name": "Atlan",
   "ats": "ashby",
   "token": "atlan",
-  "careers_url": "https://jobs.ashbyhq.com/atlan"
+  "careers_url": "https://jobs.ashbyhq.com/atlan",
+  "remote_india": true
  },
  {
   "name": "Attio",
@@ -39,7 +40,8 @@
   "name": "Bureau",
   "ats": "ashby",
   "token": "bureau",
-  "careers_url": "https://jobs.ashbyhq.com/bureau"
+  "careers_url": "https://jobs.ashbyhq.com/bureau",
+  "remote_india": true
  },
  {
   "name": "Clerk",
@@ -63,7 +65,8 @@
   "name": "Composio",
   "ats": "ashby",
   "token": "composio",
-  "careers_url": "https://jobs.ashbyhq.com/composio"
+  "careers_url": "https://jobs.ashbyhq.com/composio",
+  "remote_india": true
  },
  {
   "name": "Cursor (Anysphere)",
@@ -207,7 +210,8 @@
   "name": "Sarvam AI",
   "ats": "ashby",
   "token": "sarvam",
-  "careers_url": "https://jobs.ashbyhq.com/sarvam"
+  "careers_url": "https://jobs.ashbyhq.com/sarvam",
+  "remote_india": true
  },
  {
   "name": "Semgrep",
@@ -399,7 +403,8 @@
   "name": "Druva",
   "ats": "greenhouse",
   "token": "druva",
-  "careers_url": "https://job-boards.greenhouse.io/druva"
+  "careers_url": "https://job-boards.greenhouse.io/druva",
+  "remote_india": true
  },
  {
   "name": "Duolingo",
@@ -435,7 +440,8 @@
   "name": "Glance",
   "ats": "greenhouse",
   "token": "glance",
-  "careers_url": "https://job-boards.greenhouse.io/glance"
+  "careers_url": "https://job-boards.greenhouse.io/glance",
+  "remote_india": true
  },
  {
   "name": "Glean",
@@ -453,7 +459,8 @@
   "name": "Groww",
   "ats": "greenhouse",
   "token": "groww",
-  "careers_url": "https://job-boards.greenhouse.io/groww"
+  "careers_url": "https://job-boards.greenhouse.io/groww",
+  "remote_india": true
  },
  {
   "name": "Gusto",
@@ -471,7 +478,8 @@
   "name": "HighRadius",
   "ats": "greenhouse",
   "token": "highradius",
-  "careers_url": "https://job-boards.greenhouse.io/highradius"
+  "careers_url": "https://job-boards.greenhouse.io/highradius",
+  "remote_india": true
  },
  {
   "name": "Honeycomb",
@@ -489,7 +497,8 @@
   "name": "InMobi",
   "ats": "greenhouse",
   "token": "inmobi",
-  "careers_url": "https://job-boards.greenhouse.io/inmobi"
+  "careers_url": "https://job-boards.greenhouse.io/inmobi",
+  "remote_india": true
  },
  {
   "name": "Instacart",
@@ -633,7 +642,8 @@
   "name": "Sigmoid",
   "ats": "greenhouse",
   "token": "sigmoid",
-  "careers_url": "https://job-boards.greenhouse.io/sigmoid"
+  "careers_url": "https://job-boards.greenhouse.io/sigmoid",
+  "remote_india": true
  },
  {
   "name": "SingleStore",
@@ -645,7 +655,8 @@
   "name": "slice",
   "ats": "greenhouse",
   "token": "slice",
-  "careers_url": "https://job-boards.greenhouse.io/slice"
+  "careers_url": "https://job-boards.greenhouse.io/slice",
+  "remote_india": true
  },
  {
   "name": "Snorkel AI",
@@ -759,7 +770,8 @@
   "name": "CRED",
   "ats": "lever",
   "token": "cred",
-  "careers_url": "https://jobs.lever.co/cred"
+  "careers_url": "https://jobs.lever.co/cred",
+  "remote_india": true
  },
  {
   "name": "Crypto.com",
@@ -771,37 +783,43 @@
   "name": "FamPay",
   "ats": "lever",
   "token": "fampay",
-  "careers_url": "https://jobs.lever.co/fampay"
+  "careers_url": "https://jobs.lever.co/fampay",
+  "remote_india": true
  },
  {
   "name": "Hevo Data",
   "ats": "lever",
   "token": "hevodata",
-  "careers_url": "https://jobs.lever.co/hevodata"
+  "careers_url": "https://jobs.lever.co/hevodata",
+  "remote_india": true
  },
  {
   "name": "Meesho",
   "ats": "lever",
   "token": "meesho",
-  "careers_url": "https://jobs.lever.co/meesho"
+  "careers_url": "https://jobs.lever.co/meesho",
+  "remote_india": true
  },
  {
   "name": "Mindtickle",
   "ats": "lever",
   "token": "mindtickle",
-  "careers_url": "https://jobs.lever.co/mindtickle"
+  "careers_url": "https://jobs.lever.co/mindtickle",
+  "remote_india": true
  },
  {
   "name": "Paytm",
   "ats": "lever",
   "token": "paytm",
-  "careers_url": "https://jobs.lever.co/paytm"
+  "careers_url": "https://jobs.lever.co/paytm",
+  "remote_india": true
  },
  {
   "name": "Pocket FM",
   "ats": "lever",
   "token": "pocketfm",
-  "careers_url": "https://jobs.lever.co/pocketfm"
+  "careers_url": "https://jobs.lever.co/pocketfm",
+  "remote_india": true
  },
  {
   "name": "Spotify",
@@ -813,7 +831,8 @@
   "name": "Zeta",
   "ats": "lever",
   "token": "zeta",
-  "careers_url": "https://jobs.lever.co/zeta"
+  "careers_url": "https://jobs.lever.co/zeta",
+  "remote_india": true
  },
  {
   "name": "Avery Dennison",
@@ -1610,7 +1629,8 @@
   "name": "Swiggy",
   "ats": "smartrecruiters",
   "token": "Swiggy",
-  "careers_url": "https://careers.swiggy.in"
+  "careers_url": "https://careers.swiggy.in",
+  "remote_india": true
  },
  {
   "name": "Ford",
@@ -1708,7 +1728,8 @@
   "host": "fractal.wd1.myworkdayjobs.com",
   "tenant": "fractal",
   "site": "Careers",
-  "careers_url": "https://fractal.wd1.myworkdayjobs.com/Careers"
+  "careers_url": "https://fractal.wd1.myworkdayjobs.com/Careers",
+  "remote_india": true
  },
  {
   "name": "Palo Alto Networks",
@@ -1731,5 +1752,131 @@
   "host": "ibqbjb.fa.ocs.oraclecloud.com",
   "site": "Honeywell",
   "careers_url": "https://careers.honeywell.com/en/sites/Honeywell/jobs"
+ },
+ {
+  "name": "TrueFoundry",
+  "ats": "greenhouse",
+  "token": "truefoundry",
+  "careers_url": "https://job-boards.greenhouse.io/truefoundry"
+ },
+ {
+  "name": "Razorpay",
+  "ats": "greenhouse",
+  "token": "razorpaysoftwareprivatelimited",
+  "careers_url": "https://job-boards.greenhouse.io/razorpaysoftwareprivatelimited",
+  "remote_india": true
+ },
+ {
+  "name": "Emergent",
+  "ats": "greenhouse",
+  "token": "emergentlabsinc",
+  "careers_url": "https://job-boards.greenhouse.io/emergentlabsinc"
+ },
+ {
+  "name": "Smallest.ai",
+  "ats": "ashby",
+  "token": "smallest",
+  "careers_url": "https://jobs.ashbyhq.com/smallest"
+ },
+ {
+  "name": "Lyzr",
+  "ats": "ashby",
+  "token": "lyzr",
+  "careers_url": "https://jobs.ashbyhq.com/lyzr"
+ },
+ {
+  "name": "Ema",
+  "ats": "ashby",
+  "token": "ema",
+  "careers_url": "https://jobs.ashbyhq.com/ema"
+ },
+ {
+  "name": "Level AI",
+  "ats": "ashby",
+  "token": "level-ai",
+  "careers_url": "https://jobs.ashbyhq.com/level-ai"
+ },
+ {
+  "name": "Sprinto",
+  "ats": "lever",
+  "token": "Sprinto",
+  "careers_url": "https://jobs.lever.co/Sprinto",
+  "remote_india": true
+ },
+ {
+  "name": "BrowserStack",
+  "ats": "workday",
+  "host": "browserstack.wd3.myworkdayjobs.com",
+  "tenant": "browserstack",
+  "site": "External",
+  "careers_url": "https://browserstack.wd3.myworkdayjobs.com/External",
+  "remote_india": true
+ },
+ {
+  "name": "Jupiter",
+  "ats": "keka",
+  "token": "jupiter",
+  "portal_id": "b5279857-cf81-4dde-a215-fc48957ee2b5",
+  "careers_url": "https://jupiter.keka.com/careers/",
+  "remote_india": true
+ },
+ {
+  "name": "Signzy",
+  "ats": "keka",
+  "token": "signzy",
+  "portal_id": "54e30b3d-e138-4862-8055-8b2ce8c31009",
+  "careers_url": "https://signzy.keka.com/careers/",
+  "remote_india": true
+ },
+ {
+  "name": "CARS24",
+  "ats": "keka",
+  "token": "cars24",
+  "portal_id": "97b60e0e-c2f6-4215-89a8-84d29118b028",
+  "careers_url": "https://cars24.keka.com/careers/",
+  "remote_india": true
+ },
+ {
+  "name": "Kuku FM",
+  "ats": "keka",
+  "token": "kukufm",
+  "portal_id": "5362872d-daba-45b9-9d81-a0512a324b2c",
+  "careers_url": "https://kukufm.keka.com/careers/",
+  "remote_india": true
+ },
+ {
+  "name": "LambdaTest (TestMu AI)",
+  "ats": "keka",
+  "token": "lambdatest",
+  "portal_id": "ba76ae62-6aee-446a-a292-a7c27c5304cc",
+  "careers_url": "https://lambdatest.keka.com/careers/",
+  "remote_india": true
+ },
+ {
+  "name": "Spyne",
+  "ats": "keka",
+  "token": "spyneai",
+  "portal_id": "49556835-6902-4481-b4e9-11910edf9cb1",
+  "careers_url": "https://spyneai.keka.com/careers/",
+  "remote_india": true
+ },
+ {
+  "name": "Haptik",
+  "ats": "freshteam",
+  "token": "haptik",
+  "careers_url": "https://haptik.freshteam.com/jobs",
+  "remote_india": true
+ },
+ {
+  "name": "Leena AI",
+  "ats": "workable",
+  "token": "leena-ai",
+  "careers_url": "https://apply.workable.com/leena-ai/"
+ },
+ {
+  "name": "Rippling",
+  "ats": "rippling",
+  "token": "rippling",
+  "careers_url": "https://ats.rippling.com/rippling/jobs"
  }
 ]
